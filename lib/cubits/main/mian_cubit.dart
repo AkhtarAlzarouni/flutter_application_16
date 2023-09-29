@@ -1,0 +1,34 @@
+import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_application_16/models/post_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meta/meta.dart';
+
+part 'Mian_state.dart';
+
+class MianCubit extends Cubit<MianState> {
+  MianCubit() : super(MianInitial());
+  static MianCubit get(context) => BlocProvider.of(context);
+
+  List<PostModel> posts = [];
+
+  Dio dio = Dio();
+
+  void getPosts() {
+    emit(GetPostsLoadingState());
+    dio.get("https://jsonplaceholder.typicode.com/posts").then((value) {
+      if (value.statusCode == 200) {
+        for (var element in value.data) {
+          posts.add(PostModel.fromJson(element));
+        }
+
+        emit(GetPostsSuccessState());
+      } else {
+        emit(GetPostsErrorState());
+      }
+    }).catchError((e) {
+      print(e.toString());
+      emit(GetPostsErrorState());
+    });
+  }
+}
